@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env
+loopkeeper.db
+loopkeeper.db-journal
+.vercel/
+.pytest_cache/

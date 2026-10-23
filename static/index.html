@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Loopkeeper — Autonomous Errand Closer (MCP Voice Assistant)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base: #07090e;
+    --bg-surface: #0e1320;
+    --bg-card: #141b2d;
+    --bg-card-hover: #1a233a;
+    --border: #232d48;
+    --border-bright: #3b4870;
+    
+    --primary: #8b5cf6;
+    --primary-glow: rgba(139, 92, 246, 0.35);
+    --primary-light: #a78bfa;
+    --accent: #6366f1;
+    --emerald: #10b981;
+    --emerald-glow: rgba(16, 185, 129, 0.3);
+    --amber: #f59e0b;
+    --rose: #f43f5e;
+    
+    --text-high: #f8fafc;
+    --text-mid: #cbd5e1;
+    --text-muted: #64748b;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: radial-gradient(circle at 50% 0%, #15162c 0%, var(--bg-base) 65%);
+    color: var(--text-high);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Header ── */
+  header {
+    height: 72px;
+    background: rgba(14, 19, 32, 0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: inherit;
+  }
+  .brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px var(--primary-glow);
+    font-size: 20px;
+  }
+  .brand-text h1 {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-text h1 span { color: var(--primary-light); }
+  .brand-tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .badge-sim {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .badge-sim::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    background: #fbbf24;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  .badge-mcp {
+    background: rgba(139, 92, 246, 0.14);
+    color: var(--primary-light);
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-high);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-bright);
+    transform: translateY(-1px);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 14px var(--primary-glow);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.1);
+    box-shadow: 0 6px 20px var(--primary-glow);
+  }
+  .btn-emerald {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 14px var(--emerald-glow);
+  }
+  .btn-emerald:hover { filter: brightness(1.1); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 7px; }
+
+  /* ── Demo Progress Bar ── */
+  .demo-stepper-bar {
+    background: rgba(14, 19, 32, 0.6);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    overflow-x: auto;
+  }
+  .stepper-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .step-chips {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .step-chip {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+  .step-chip:hover { color: var(--text-mid); background: rgba(255, 255, 255, 0.08); }
+  .step-chip.active {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: var(--primary);
+    color: var(--primary-light);
+  }
+  .step-chip.completed {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #34d399;
+  }
+
+  /* ── Main Viewport (1920x1080 optimized grid) ── */
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 24px;
+    padding: 24px 28px 130px 28px;
+    max-width: 1800px;
+    margin: 0 auto;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* ── Left Column: Echo-Show Focus Stage ── */
+  .focus-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 0;
+  }
+
+  .focus-hero-card {
+    background: linear-gradient(135deg, rgba(20, 27, 45, 0.9) 0%, rgba(14, 19, 32, 0.95) 100%);
+    border: 1px solid var(--border-bright);
+    border-radius: 20px;
+    padding: 24px 28px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    position: relative;
+    overflow: hidden;
+  }
+  .focus-hero-card::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .focus-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .focus-step-tag {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary-light);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .focus-status-badge {
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text-mid);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .focus-title {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.6px;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.25;
+  }
+  .focus-desc {
+    font-size: 14px;
+    color: var(--text-mid);
+    line-height: 1.5;
+  }
+
+  /* ── Glowing Waveform ── */
+  .waveform-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 64px;
+    margin: 14px 0 6px 0;
+  }
+  .wave-bar {
+    width: 4px;
+    height: 8px;
+    background: linear-gradient(180deg, var(--primary-light) 0%, var(--accent) 100%);
+    border-radius: 3px;
+    transition: height 0.12s ease;
+  }
+  .wave-bar.active {
+    animation: waveBounce 0.75s ease-in-out infinite alternate;
+  }
+  @keyframes waveBounce {
+    0% { height: 10px; opacity: 0.4; }
+    100% { height: 54px; opacity: 1; filter: drop-shadow(0 0 6px var(--primary-light)); }
+  }
+  .wave-bar:nth-child(1) { animation-delay: 0.05s; }
+  .wave-bar:nth-child(2) { animation-delay: 0.18s; }
+  .wave-bar:nth-child(3) { animation-delay: 0.28s; }
+  .wave-bar:nth-child(4) { animation-delay: 0.12s; }
+  .wave-bar:nth-child(5) { animation-delay: 0.35s; }
+  .wave-bar:nth-child(6) { animation-delay: 0.22s; }
+  .wave-bar:nth-child(7) { animation-delay: 0.08s; }
+  .wave-bar:nth-child(8) { animation-delay: 0.30s; }
+  .wave-bar:nth-child(9) { animation-delay: 0.15s; }
+  .wave-bar:nth-child(10) { animation-delay: 0.25s; }
+
+  /* ── Approve Modal / Drawer ── */
+  .approve-card {
+    background: linear-gradient(135deg, rgba(30, 20, 10, 0.95) 0%, rgba(20, 15, 10, 0.95) 100%);
+    border: 2px solid var(--amber);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 10px;
+    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.25);
+    display: none;
+    animation: fadeIn 0.25s ease;
+  }
+  .approve-card.visible { display: block; }
+  .approve-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .approve-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fbbf24;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .approve-card textarea {
+    width: 100%;
+    min-height: 80px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: 10px;
+    color: var(--text-high);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 12px;
+    margin: 8px 0 14px 0;
+    resize: vertical;
+  }
+  .approve-card textarea:focus {
+    outline: none;
+    border-color: #fbbf24;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+  }
+  .approve-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ── Chat Stream ── */
+  .chat-stream-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 280px;
+  }
+  .chat-stream-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .chat-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scrollbar-width: thin;
+  }
+  
+  .chat-bubble {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    animation: fadeIn 0.2s ease;
+  }
+  .chat-bubble.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    color: #fff;
+    border-bottom-right-radius: 3px;
+    box-shadow: 0 4px 12px var(--primary-glow);
+  }
+  .chat-bubble.assistant {
+    align-self: flex-start;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-high);
+    border-bottom-left-radius: 3px;
+  }
+  .chat-bubble.tool-pill {
+    align-self: flex-start;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px dashed #334155;
+    color: #94a3b8;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+  .chat-bubble.system {
+    align-self: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 4px 12px;
+    border-radius: 100px;
+  }
+
+  /* ── Interactive Input Bar ── */
+  .input-bar {
+    display: flex;
+    gap: 10px;
+    padding: 14px 20px;
+    background: rgba(14, 19, 32, 0.95);
+    border-top: 1px solid var(--border);
+    align-items: center;
+  }
+  .mic-button {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--border-bright);
+    color: var(--text-high);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    flex-shrink: 0;
+  }
+  .mic-button:hover {
+    border-color: var(--primary);
+    transform: scale(1.05);
+  }
+  .mic-button.listening {
+    background: var(--primary);
+    border-color: #fff;
+    box-shadow: 0 0 25px var(--primary-glow);
+    animation: pulse 1.5s infinite;
+  }
+
+  .text-input-field {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text-high);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    transition: border-color 0.15s ease;
+  }
+  .text-input-field:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  /* ── Right Column: Errand Progression Board ── */
+  .progression-board {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 0;
+  }
+
+  .clock-widget {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .clock-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .clock-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .clock-text h4 { font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.6px; }
+  .clock-text p { font-size: 18px; font-weight: 800; color: var(--text-high); }
+
+  /* ── Errand Cards ── */
+  .errands-container {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  .errands-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .errands-header h3 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+
+  .errand-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    transition: all 0.2s ease;
+    animation: fadeIn 0.3s ease;
+  }
+  .errand-card:hover {
+    border-color: var(--border-bright);
+    background: var(--bg-card-hover);
+  }
+  .errand-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .errand-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .errand-counterparty {
+    font-size: 12px;
+    color: var(--primary-light);
+    font-weight: 600;
+  }
+  .errand-card p {
+    font-size: 12px;
+    color: var(--text-mid);
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+
+  /* 5-Step Stepper */
+  .stepper-track {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  .stepper-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    transition: background 0.3s ease;
+  }
+  .stepper-bar.done { background: var(--primary); }
+  .stepper-bar.current {
+    background: #fbbf24;
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
+  }
+  .stepper-bar.resolved {
+    background: var(--emerald);
+    box-shadow: 0 0 8px var(--emerald-glow);
+  }
+  
+  .stepper-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ── Live Mini Trace ── */
+  .trace-mini-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 220px;
+  }
+  .trace-mini-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .trace-mini-log {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    scrollbar-width: thin;
+  }
+  .trace-line {
+    padding: 4px 8px;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .trace-line.out { color: #93c5fd; border-left: 2px solid #3b82f6; }
+  .trace-line.in { color: #6ee7b7; border-left: 2px solid #10b981; }
+
+  /* ── LARGE LIVE CAPTION BAR (For Screen Recording & Muted Viewers) ── */
+  .live-caption-bar {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(94%, 1200px);
+    background: rgba(10, 14, 25, 0.94);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 24px rgba(139, 92, 246, 0.2);
+    border-radius: 18px;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    z-index: 900;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .caption-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    box-shadow: 0 0 16px var(--primary-glow);
+  }
+  .caption-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .caption-sender {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: var(--primary-light);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .caption-text {
+    font-size: 17px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .caption-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  /* ── "Under the Hood" Modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 20px;
+    width: min(95%, 1100px);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 40px var(--primary-glow);
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-header h2 {
+    font-size: 18px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .stat-card h5 { font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+  .stat-card p { font-size: 16px; font-weight: 700; color: #fff; font-family: var(--font-mono); }
+
+  .code-viewer {
+    background: #04060a;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    color: #94a3b8;
+    max-height: 340px;
+    overflow-y: auto;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.15); }
+  }
+
+  @media (max-width: 1080px) {
+    main { grid-template-columns: 1fr; }
+    .live-caption-bar { width: 95%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="brand">
+    <div class="brand-icon">⚡</div>
+    <div class="brand-text">
+      <h1>Loop<span>keeper</span></h1>
+      <span class="brand-tag">Autonomous Errand Closer</span>
+    </div>
+  </div>
+
+  <div class="header-actions">
+    <span class="badge-sim" title="All communications and responses are generated via internal scripted adapters — zero real external messages sent.">Simulated Provider</span>
+    <span class="badge-mcp" id="mcpProtoBadge">MCP 2025-11-25</span>
+    <button class="btn btn-sm" id="resetDemoBtn" title="Reset state to pristine Day 0">↻ Reset Demo</button>
+    <button class="btn btn-sm btn-primary" id="openUnderTheHoodBtn">⚙ Under The Hood</button>
+  </div>
+</header>
+
+<!-- Demo Stepper Bar -->
+<div class="demo-stepper-bar">
+  <div class="stepper-label">
+    <span>🎬 Rehearsal Flow:</span>
+  </div>
+  <div class="step-chips" id="stepChips">
+    <div class="step-chip active" data-step="1">1. Capture Errand</div>
+    <div class="step-chip" data-step="2">2. Draft Outreach</div>
+    <div class="step-chip" data-step="3">3. Approve & Send</div>
+    <div class="step-chip" data-step="4">4. New Session</div>
+    <div class="step-chip" data-step="5">5. What's Open?</div>
+    <div class="step-chip" data-step="6">6. Tomorrow Morning</div>
+    <div class="step-chip" data-step="7">7. Loop Resolves</div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn btn-sm btn-primary" id="nextStepBtn">Next Step ▶</button>
+  </div>
+</div>
+
+<!-- Main Viewport -->
+<main>
+  <!-- Left: Voice / Focus Experience -->
+  <div class="focus-stage">
+    <!-- Active Focus Hero Card -->
+    <div class="focus-hero-card">
+      <div class="focus-meta">
+        <span class="focus-step-tag" id="focusStepTag">STEP 1 OF 7 • VOICE CAPTURE</span>
+        <span class="focus-status-badge" id="voiceStatusBadge">● Ready</span>
+      </div>
+      <h2 class="focus-title" id="focusTitle">Tracking Gym Double-Charge</h2>
+      <p class="focus-desc" id="focusDesc">Speak or tap 'Next Step' to initiate the errand closing pipeline.</p>
+      
+      <!-- Audio Waveform -->
+      <div class="waveform-box" id="waveformBox">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+    </div>
+
+    <!-- Confirmation / Approval Drawer -->
+    <div class="approve-card" id="approveCard">
+      <div class="approve-header">
+        <h3>⚡ Confirmation Required — Outbound Outreach</h3>
+        <span class="badge-sim">Side-Effecting Action</span>
+      </div>
+      <p style="font-size:13px;color:var(--text-mid);">
+        Sending an outreach message contacts the outside provider. In compliance with MCP security hints, Loopkeeper pauses for human review.
+      </p>
+      <textarea id="approveEditMsg"></textarea>
+      <div class="approve-actions">
+        <button class="btn btn-emerald btn-sm" id="approveSendBtn">✓ Approve &amp; Send (Simulated)</button>
+        <button class="btn btn-sm" id="cancelApproveBtn">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Conversation Stream -->
+    <div class="chat-stream-card">
+      <div class="chat-stream-header">
+        <span>CONVERSATIONAL DIALOGUE</span>
+        <span style="font-family:var(--font-mono);font-size:11px;" id="sessionStatus">SESSION #1 • PERSISTENT SQLITE</span>
+      </div>
+      <div class="chat-scroll" id="chatScroll">
+        <div class="chat-bubble system">Loopkeeper initialized. Official MCP SDK negotiated protocol 2025-11-25.</div>
+      </div>
+      <div class="input-bar">
+        <button class="mic-button" id="micBtn" title="Hold or click to speak">🎙</button>
+        <input type="text" class="text-input-field" id="textInput" placeholder="Speak or type a command... (e.g. 'What's open?')" autocomplete="off"/>
+        <button class="btn btn-primary btn-sm" id="sendBtn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Errand Progression Board & Mini Trace -->
+  <div class="progression-board">
+    <!-- Simulated Clock Widget -->
+    <div class="clock-widget">
+      <div class="clock-info">
+        <div class="clock-icon">☀</div>
+        <div class="clock-text">
+          <h4>Simulated Timeline</h4>
+          <p id="clockDisplay">Day 0 (Today)</p>
+        </div>
+      </div>
+      <button class="btn btn-sm" id="advanceOneDayBtn">Tomorrow Morning ➔</button>
+    </div>
+
+    <!-- Errand Progression Cards -->
+    <div class="errands-container">
+      <div class="errands-header">
+        <h3>Tracked Open Loops</h3>
+        <button class="btn btn-sm" id="refreshLoopsBtn">Refresh</button>
+      </div>
+      <div id="errandsList">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Live Mini Trace Feed -->
+    <div class="trace-mini-card">
+      <div class="trace-mini-header">
+        <span>LIVE MCP STREAMABLE HTTP TRACE</span>
+        <button class="btn btn-sm" id="viewFullTraceBtn">Expand</button>
+      </div>
+      <div class="trace-mini-log" id="traceMiniLog">
+        <div class="trace-line in">← initialize response (protocolVersion: 2025-11-25)</div>
+        <div class="trace-line in">← tools/list response (10 tools loaded)</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Live Caption Bar (Prominent for Screen Recording & Muted Viewers) -->
+<div class="live-caption-bar" id="liveCaptionBar">
+  <div class="caption-avatar">🎙</div>
+  <div class="caption-content">
+    <div class="caption-sender">
+      <span>LOOPKEEPER SPEECH</span>
+      <span style="font-weight:400;color:var(--text-muted);">• LIVE CAPTIONS</span>
+    </div>
+    <div class="caption-text" id="captionText">"Hello! I'm Loopkeeper. I help finish the errands you keep putting off."</div>
+  </div>
+  <div class="caption-controls">
+    <button class="btn btn-sm" id="muteToggleBtn">🔊 Audio On</button>
+  </div>
+</div>
+
+<!-- "Under The Hood" Modal -->
+<div class="modal-overlay" id="underTheHoodModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>⚙ Under The Hood: Real MCP Architecture</h2>
+      <button class="btn btn-sm" id="closeModalBtn">✕ Close</button>
+    </div>
+    <div class="modal-body">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <h5>Negotiated Protocol</h5>
+          <p id="modalProtoVer">2025-11-25</p>
+        </div>
+        <div class="stat-card">
+          <h5>Transport</h5>
+          <p>Streamable HTTP</p>
+        </div>
+        <div class="stat-card">
+          <h5>Exposed Tools</h5>
+          <p id="modalToolCount">10 Registered</p>
+        </div>
+        <div class="stat-card">
+          <h5>Backend Engine</h5>
+          <p>FastAPI + MCP 2.3</p>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:13px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Live JSON-RPC Message Trace</h4>
+        <div class="code-viewer" id="modalTraceContent">
+          <!-- Populated from trace log -->
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button class="btn btn-sm" id="copyTraceBtn">📋 Copy Trace JSON</button>
+        <button class="btn btn-primary btn-sm" id="rehearseAgainBtn">↻ Replay Flow from Step 1</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Configuration & State ──────────────────────────────────────────────────
+const MCP_URL = '/mcp/';
+let sessionId = null;
+let msgId = 0;
+let mcpTools = [];
+let fullTraceLog = [];
+let audioMuted = false;
+let currentStepIndex = 0;
+let gymErrandId = null;
+
+// ─── 7-Step Rehearsal Flow ──────────────────────────────────────────────────
+const REHEARSAL_FLOW = [
+  {
+    step: 1,
+    title: "1. Capture Errand",
+    focusTitle: "1. Capturing FitLife Gym Dispute",
+    focusDesc: "Capturing open loop for duplicate gym charge via MCP capture_errand.",
+    userText: "Track an errand: FitLife Gym double-charged me $49 last month.",
+    tool: "capture_errand",
+    args: {
+      title: "Gym double-charge dispute",
+      counterparty: "FitLife Gym",
+      details: "Double-charged $49 on Oct 1. Request refund to card on file."
+    },
+    spoken: "Captured: Gym double-charge dispute with FitLife Gym. Ready to draft an outreach message?",
+    postAction: (res) => {
+      gymErrandId = res.errand_id;
+    }
+  },
+  {
+    step: 2,
+    title: "2. Draft Outreach",
+    focusTitle: "2. Drafting Outreach Message",
+    focusDesc: "Preparing drafted email message with recalled customer member ID.",
+    userText: "Yes, draft a message to FitLife Gym requesting a refund.",
+    tool: "draft_outreach",
+    getArgs: () => ({
+      errand_id: gymErrandId || 2,
+      message: "Hi FitLife Gym, I noticed a duplicate charge of $49 on October 1st on my account. Could you please investigate and issue a refund to my payment card? Member ID #8492. Thank you."
+    }),
+    spoken: "Outreach message drafted. Because this sends external communication, Loopkeeper requires your approval before sending.",
+    requiresApproval: true
+  },
+  {
+    step: 3,
+    title: "3. Approve & Send",
+    focusTitle: "3. Outbound Outreach Dispatched",
+    focusDesc: "Approved by human user. Dispatched via Simulated Provider Adapter.",
+    userText: "Approve and send the message via email.",
+    tool: "send_outreach",
+    getArgs: () => ({
+      errand_id: gymErrandId || 2,
+      channel: "email"
+    }),
+    spoken: "Approved! Sent email via simulated provider adapter. I will monitor for incoming replies."
+  },
+  {
+    step: 4,
+    title: "4. New Session",
+    focusTitle: "4. New Session Initialized",
+    focusDesc: "Proving memory: Dialogue context cleared while SQLite state survives.",
+    userText: "New session.",
+    isNewSession: true,
+    spoken: "New session started. Dialogue context cleared, while SQLite state and your open loops are safely preserved."
+  },
+  {
+    step: 5,
+    title: "5. What's Open?",
+    focusTitle: "5. Recalling Open Loops",
+    focusDesc: "Querying persistent SQLite database via MCP list_open_loops.",
+    userText: "What's open? What errands are currently on my plate?",
+    tool: "list_open_loops",
+    args: {},
+    spoken: "You have 2 open loops: Return the blender to RetailStore, and the Gym double-charge dispute waiting for counterparty reply."
+  },
+  {
+    step: 6,
+    title: "6. Tomorrow Morning",
+    focusTitle: "6. Tomorrow Morning Briefing",
+    focusDesc: "Simulated clock advanced to Day 1: Incoming reply detected from FitLife Gym!",
+    userText: "Advance to tomorrow morning and check for updates.",
+    isAdvanceAndBrief: true,
+    spoken: "Good morning! Clock advanced to Day 1. FitLife Gym replied: billing error verified and your $49 refund has been processed!"
+  },
+  {
+    step: 7,
+    title: "7. Loop Resolves",
+    focusTitle: "7. Errand Closed & Resolved! 🎉",
+    focusDesc: "Full loop completed. Status updated to 'resolved' in persistent store.",
+    userText: "Great news! Resolve the gym errand as refund received.",
+    tool: "resolve_errand",
+    getArgs: () => ({
+      errand_id: gymErrandId || 2,
+      outcome: "Full $49 refund confirmed and processed by FitLife Gym."
+    }),
+    spoken: "Loop closed! Gym double-charge dispute resolved. Errand finished!",
+    finished: true
+  }
+];
+
+// ─── Streamable HTTP MCP Client ─────────────────────────────────────────────
+function nextId() { return ++msgId; }
+
+function addTrace(dir, label, body) {
+  const item = { dir, label, body, timestamp: new Date().toLocaleTimeString() };
+  fullTraceLog.unshift(item);
+  if (fullTraceLog.length > 50) fullTraceLog.pop();
+
+  const miniLog = document.getElementById('traceMiniLog');
+  const line = document.createElement('div');
+  line.className = `trace-line ${dir}`;
+  line.textContent = `${dir === 'out' ? '→' : '←'} ${label}`;
+  miniLog.prepend(line);
+  while (miniLog.children.length > 8) miniLog.removeChild(miniLog.lastChild);
+
+  updateModalTrace();
+}
+
+async function mcpCall(method, params = {}) {
+  const reqBody = { jsonrpc: "2.0", id: nextId(), method, params };
+  addTrace('out', `${method}`, reqBody);
+
+  const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' };
+  if (sessionId) headers['Mcp-Session-Id'] = sessionId;
+
+  const resp = await fetch(MCP_URL, { method: 'POST', headers, body: JSON.stringify(reqBody) });
+  if (resp.headers.get('Mcp-Session-Id')) sessionId = resp.headers.get('Mcp-Session-Id');
+
+  const ct = resp.headers.get('content-type') || '';
+  let result;
+
+  if (ct.includes('text/event-stream')) {
+    const text = await resp.text();
+    const lines = text.split(/\r?\n/);
+    let lastData = null;
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (line.startsWith('data:')) {
+        try { lastData = JSON.parse(line.slice(5).trim()); } catch(e) {}
+      }
+    }
+    result = lastData;
+  } else {
+    result = await resp.json();
+  }
+
+  addTrace('in', `${method} response`, result);
+  if (result && result.error) throw new Error(result.error.message || JSON.stringify(result.error));
+  return result && result.result !== undefined ? result.result : result;
+}
+
+async function mcpInitialize() {
+  const result = await mcpCall('initialize', {
+    protocolVersion: '2025-11-25',
+    capabilities: { tools: {}, resources: {}, prompts: {} },
+    clientInfo: { name: 'LoopkeeperWebApp', version: '2.0.0' }
+  });
+  return result;
+}
+
+async function mcpCallTool(name, args = {}) {
+  const result = await mcpCall('tools/call', { name, arguments: args });
+  if (result && result.content) {
+    const text = result.content.filter(c => c.type === 'text').map(c => c.text).join('\n');
+    try { return JSON.parse(text); } catch(e) { return text; }
+  }
+  return result;
+}
+
+// ─── Speech & Captions ──────────────────────────────────────────────────────
+function speakAndCaption(text) {
+  // Update live caption bar
+  const captionEl = document.getElementById('captionText');
+  captionEl.textContent = `"${text}"`;
+
+  // Animate waveform
+  const bars = document.querySelectorAll('.wave-bar');
+  bars.forEach(b => b.classList.add('active'));
+
+  if (!audioMuted && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = 1.15; // Crisp, under 10s per step
+    utt.pitch = 1.0;
+    utt.onend = () => {
+      bars.forEach(b => b.classList.remove('active'));
+    };
+    window.speechSynthesis.speak(utt);
+  } else {
+    setTimeout(() => {
+      bars.forEach(b => b.classList.remove('active'));
+    }, 2800);
+  }
+}
+
+// ─── UI Rendering ───────────────────────────────────────────────────────────
+function addChatBubble(role, text) {
+  const container = document.getElementById('chatScroll');
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble ${role}`;
+  bubble.textContent = text;
+  container.appendChild(bubble);
+  container.scrollTop = container.scrollHeight;
+}
+
+const STEP_NAMES = ['captured', 'drafted', 'sent', 'waiting', 'resolved'];
+
+async function refreshErrandsUI() {
+  try {
+    const data = await mcpCallTool('list_open_loops', {});
+    const container = document.getElementById('errandsList');
+    container.innerHTML = '';
+
+    if (!data || !data.errands || data.errands.length === 0) {
+      container.innerHTML = '<div style="font-size:13px;color:var(--text-muted);text-align:center;padding:20px;">No open loops — all clear! 🎉</div>';
+      return;
+    }
+
+    data.errands.forEach(errand => {
+      const card = document.createElement('div');
+      card.className = 'errand-card';
+
+      const currentIdx = STEP_NAMES.indexOf(errand.status);
+      const isResolved = errand.status === 'resolved';
+
+      let stepperHtml = '<div class="stepper-track">';
+      STEP_NAMES.forEach((s, idx) => {
+        let cls = '';
+        if (isResolved) cls = 'resolved';
+        else if (idx < currentIdx) cls = 'done';
+        else if (idx === currentIdx) cls = 'current';
+        stepperHtml += `<div class="stepper-bar ${cls}"></div>`;
+      });
+      stepperHtml += '</div>';
+
+      card.innerHTML = `
+        <div class="errand-card-top">
+          <div>
+            <h4>${escapeHtml(errand.title)}</h4>
+            <span class="errand-counterparty">${escapeHtml(errand.counterparty)}</span>
+          </div>
+          <span class="badge-sim" style="font-size:10px;">${errand.status.toUpperCase()}</span>
+        </div>
+        <p>${escapeHtml(errand.details || 'Tracking open communication.')}</p>
+        ${stepperHtml}
+        <div class="stepper-labels">
+          <span>Captured</span><span>Drafted</span><span>Sent</span><span>Waiting</span><span>Resolved</span>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    // Also update clock display
+    const repliesData = await mcpCallTool('check_replies', {});
+    document.getElementById('clockDisplay').textContent = `Day ${repliesData.sim_day || 0} (${repliesData.sim_day === 0 ? 'Today' : 'Tomorrow'})`;
+
+  } catch(e) {
+    console.error('refreshErrandsUI error:', e);
+  }
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function updateStepperPills(stepNum) {
+  document.querySelectorAll('.step-chip').forEach(chip => {
+    const s = parseInt(chip.dataset.step);
+    chip.classList.remove('active', 'completed');
+    if (s < stepNum) chip.classList.add('completed');
+    else if (s === stepNum) chip.classList.add('active');
+  });
+}
+
+function updateModalTrace() {
+  const viewer = document.getElementById('modalTraceContent');
+  if (!viewer) return;
+  viewer.textContent = JSON.stringify(fullTraceLog, null, 2);
+}
+
+// ─── Execution of Rehearsal Step ────────────────────────────────────────────
+async function executeStep(stepIndex) {
+  if (stepIndex >= REHEARSAL_FLOW.length) {
+    // Open Under the hood
+    document.getElementById('underTheHoodModal').classList.add('open');
+    return;
+  }
+
+  const step = REHEARSAL_FLOW[stepIndex];
+  currentStepIndex = stepIndex;
+
+  // Update Focus Hero Card
+  document.getElementById('focusStepTag').textContent = `STEP ${step.step} OF 7 • ${step.title.toUpperCase()}`;
+  document.getElementById('focusTitle').textContent = step.focusTitle;
+  document.getElementById('focusDesc').textContent = step.focusDesc;
+  document.getElementById('voiceStatusBadge').textContent = `● Executing Step ${step.step}`;
+  updateStepperPills(step.step);
+
+  // User input simulation
+  addChatBubble('user', step.userText);
+
+  // Handle special step: New Session
+  if (step.isNewSession) {
+    document.getElementById('chatScroll').innerHTML = '';
+    addChatBubble('system', '— New Session Started (SQLite memory preserved) —');
+    document.getElementById('sessionStatus').textContent = 'SESSION #2 • PERSISTENT SQLITE';
+    speakAndCaption(step.spoken);
+    addChatBubble('assistant', step.spoken);
+    await refreshErrandsUI();
+    return;
+  }
+
+  // Handle special step: Tomorrow Morning (Advance + Brief)
+  if (step.isAdvanceAndBrief) {
+    await mcpCallTool('advance_clock', { days: 1 });
+    const brief = await mcpCallTool('morning_brief', {});
+    const replies = await mcpCallTool('check_replies', {});
+    speakAndCaption(step.spoken);
+    addChatBubble('assistant', step.spoken);
+    await refreshErrandsUI();
+    return;
+  }
+
+  // Standard MCP tool call
+  const args = step.getArgs ? step.getArgs() : (step.args || {});
+  addChatBubble('tool-pill', `→ tools/call: ${step.tool}(${JSON.stringify(args)})`);
+
+  try {
+    const result = await mcpCallTool(step.tool, args);
+
+    if (step.postAction) step.postAction(result);
+
+    // If step requires approval, show approve card
+    if (step.requiresApproval) {
+      const card = document.getElementById('approveCard');
+      document.getElementById('approveEditMsg').value = args.message;
+      card.classList.add('visible');
+      speakAndCaption(step.spoken);
+      addChatBubble('assistant', step.spoken);
+      return;
+    }
+
+    speakAndCaption(step.spoken);
+    addChatBubble('assistant', step.spoken);
+    await refreshErrandsUI();
+
+    if (step.finished) {
+      document.getElementById('nextStepBtn').textContent = 'View Under The Hood ⚙';
+    }
+
+  } catch(e) {
+    addChatBubble('assistant', `⚠ Error executing ${step.tool}: ${e.message}`);
+  }
+}
+
+// ─── Event Handlers ─────────────────────────────────────────────────────────
+document.getElementById('nextStepBtn').addEventListener('click', () => {
+  if (currentStepIndex === 1 && document.getElementById('approveCard').classList.contains('visible')) {
+    // If on draft approval step, advance via Approve button
+    document.getElementById('approveSendBtn').click();
+  } else if (currentStepIndex >= REHEARSAL_FLOW.length - 1) {
+    document.getElementById('underTheHoodModal').classList.add('open');
+  } else {
+    executeStep(currentStepIndex + 1);
+  }
+});
+
+document.getElementById('approveSendBtn').addEventListener('click', async () => {
+  document.getElementById('approveCard').classList.remove('visible');
+  // Advance to Step 3 (Approve & Send)
+  await executeStep(2);
+});
+
+document.getElementById('cancelApproveBtn').addEventListener('click', () => {
+  document.getElementById('approveCard').classList.remove('visible');
+  addChatBubble('assistant', 'Outreach delivery cancelled.');
+});
+
+document.querySelectorAll('.step-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const stepNum = parseInt(chip.dataset.step);
+    executeStep(stepNum - 1);
+  });
+});
+
+document.getElementById('advanceOneDayBtn').addEventListener('click', async () => {
+  await executeStep(5); // Jump to Step 6
+});
+
+document.getElementById('resetDemoBtn').addEventListener('click', async () => {
+  try {
+    await fetch('/api/reset', { method: 'POST' });
+    currentStepIndex = 0;
+    gymErrandId = null;
+    document.getElementById('chatScroll').innerHTML = '<div class="chat-bubble system">Demo reset to pristine Day 0.</div>';
+    document.getElementById('sessionStatus').textContent = 'SESSION #1 • PERSISTENT SQLITE';
+    document.getElementById('approveCard').classList.remove('visible');
+    document.getElementById('nextStepBtn').textContent = 'Next Step ▶';
+    await refreshErrandsUI();
+    executeStep(0);
+  } catch(e) {
+    alert('Failed to reset: ' + e);
+  }
+});
+
+document.getElementById('openUnderTheHoodBtn').addEventListener('click', () => {
+  document.getElementById('underTheHoodModal').classList.add('open');
+});
+document.getElementById('viewFullTraceBtn').addEventListener('click', () => {
+  document.getElementById('underTheHoodModal').classList.add('open');
+});
+document.getElementById('closeModalBtn').addEventListener('click', () => {
+  document.getElementById('underTheHoodModal').classList.remove('open');
+});
+
+document.getElementById('rehearseAgainBtn').addEventListener('click', () => {
+  document.getElementById('underTheHoodModal').classList.remove('open');
+  document.getElementById('resetDemoBtn').click();
+});
+
+document.getElementById('copyTraceBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText(JSON.stringify(fullTraceLog, null, 2));
+  alert('Trace log copied to clipboard!');
+});
+
+document.getElementById('muteToggleBtn').addEventListener('click', () => {
+  audioMuted = !audioMuted;
+  document.getElementById('muteToggleBtn').textContent = audioMuted ? '🔇 Audio Muted' : '🔊 Audio On';
+  if (audioMuted && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+});
+
+document.getElementById('refreshLoopsBtn').addEventListener('click', refreshErrandsUI);
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+  // Space advances demo when not typing in text field
+  if (e.code === 'Space' && document.activeElement !== document.getElementById('textInput') && document.activeElement !== document.getElementById('approveEditMsg')) {
+    e.preventDefault();
+    document.getElementById('nextStepBtn').click();
+  }
+});
+
+// Text send fallback
+document.getElementById('sendBtn').addEventListener('click', () => {
+  const text = document.getElementById('textInput').value.trim();
+  if (!text) return;
+  document.getElementById('textInput').value = '';
+  addChatBubble('user', text);
+  speakAndCaption(`Got your request: "${text}". Running next errand stage.`);
+  document.getElementById('nextStepBtn').click();
+});
+document.getElementById('textInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('sendBtn').click();
+});
+
+// Mic toggle
+document.getElementById('micBtn').addEventListener('click', () => {
+  const btn = document.getElementById('micBtn');
+  btn.classList.toggle('listening');
+  if (btn.classList.contains('listening')) {
+    speakAndCaption("Listening... (Tap Next Step or speak your command)");
+    setTimeout(() => {
+      btn.classList.remove('listening');
+      document.getElementById('nextStepBtn').click();
+    }, 2500);
+  }
+});
+
+// ─── Initialization ─────────────────────────────────────────────────────────
+async function initApp() {
+  try {
+    const initRes = await mcpInitialize();
+    const proto = initRes.protocolVersion || '2025-11-25';
+    document.getElementById('mcpProtoBadge').textContent = `MCP ${proto}`;
+    document.getElementById('modalProtoVer').textContent = proto;
+
+    const toolsRes = await mcpCall('tools/list', {});
+    mcpTools = toolsRes.tools || [];
+    document.getElementById('modalToolCount').textContent = `${mcpTools.length} Registered`;
+
+    await refreshErrandsUI();
+
+    // Start on Step 1
+    executeStep(0);
+  } catch(e) {
+    console.error('Initialization error:', e);
+    addChatBubble('system', `⚠ MCP Connect failed: ${e.message}`);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
